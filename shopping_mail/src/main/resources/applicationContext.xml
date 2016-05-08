@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!-- 自动扫描包 -->
+    <context:component-scan base-package="shop"/>
+
+    <!-- 启动注解 -->
+    <context:annotation-config/>
+
+    <!--读取数据库的配置文件-->
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+
+    <!-- 配置 datasource -->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <property name="driverClass" value="${jdbc_driverName}"/>
+        <property name="jdbcUrl" value="${jdbc_url}"/>
+        <property name="user" value="${jdbc_username}"/>
+        <property name="password" value="${jdbc_password}"/>
+        <!-- 连接池启动时的初始值 -->
+        <property name="initialPoolSize" value="10"/>
+        <!-- 连接池的最大值 -->
+        <property name="maxPoolSize" value="100"/>
+        <!-- 最大空闲值 -->
+        <property name="maxIdleTime" value="50"/>
+    </bean>
+
+    <!--配置 hibernate 的 SessionFactory-->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.format_sql">false</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+                <!--* 在Spring事务管理中,current Session是绑定到SpringSessionContext中的
+                    而不是ThreadLocalSessionContext中的（默认设置）-->
+                <!--
+                    <prop key="hibernate.current_session_context_class">
+                        org.springframework.orm.hibernate4.SpringSessionContext
+                    </prop>
+                -->
+            </props>
+        </property>
+        <property name="packagesToScan" value="shop.entity,shop.admin.entity"/>
+    </bean>
+
+    <!-- 配置事务管理器 -->
+    <bean id="txManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <!-- 启动注解声明式事务管理 -->
+    <tx:annotation-driven transaction-manager="txManager"/>
+</beans>

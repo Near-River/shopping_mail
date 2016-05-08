@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+        "http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+    <constant name="struts.action.extension" value="action"/>
+
+    <package name="indexManager" extends="struts-default">
+        <action name="index" class="indexPageAction" method="execute">
+            <result name="index">/WEB-INF/jsp/index.jsp</result>
+        </action>
+    </package>
+
+    <package name="userManager" extends="struts-default">
+        <action name="user_*Page" class="userAction" method="{1}Page">
+            <result name="{1}Page">/WEB-INF/jsp/{1}.jsp</result>
+        </action>
+
+        <action name="user_findByName" class="userAction" method="findByName"/>
+
+        <action name="user_*" class="userAction" method="{1}">
+            <result name="{1}Failure">/WEB-INF/jsp/{1}.jsp</result>
+            <result name="{1}Success" type="redirectAction">index</result>
+            <result name="register" type="redirectAction">user_active</result>
+            <result name="msg">/WEB-INF/jsp/msg.jsp</result>
+        </action>
+
+        <action name="checkImg" class="checkImgAction"/>
+    </package>
+
+    <package name="categoryManager" extends="struts-default">
+        <action name="product_show" class="productAction" method="findProductById">
+            <result>/WEB-INF/jsp/product.jsp</result>
+        </action>
+        <action name="product_findBy*" class="productAction" method="findProductsByPageAnd{1}">
+            <result>/WEB-INF/jsp/productList.jsp</result>
+        </action>
+    </package>
+
+    <package name="cartManager" extends="struts-default">
+        <action name="cart_*Cart" class="cartAction" method="{1}Cart">
+            <result name="{1}Cart">/WEB-INF/jsp/cart.jsp</result>
+            <result name="clearCart">/WEB-INF/jsp/cart.jsp</result>
+        </action>
+        <action name="show_myCart" class="cartAction">
+            <result>/WEB-INF/jsp/cart.jsp</result>
+        </action>
+    </package>
+
+    <package name="orderManager" extends="struts-default">
+        <action name="order_add" class="orderAction" method="addOrder">
+            <result>/WEB-INF/jsp/order.jsp</result>
+        </action>
+        <action name="cart_findByUid" class="orderAction" method="findOrdersByPageAndUid">
+            <result>/WEB-INF/jsp/orderList.jsp</result>
+        </action>
+        <action name="order_delete" class="orderAction" method="deleteOrder">
+            <result>/WEB-INF/jsp/orderList.jsp</result>
+        </action>
+        <action name="order_findByOid" class="orderAction" method="findOrderByOid">
+            <result>/WEB-INF/jsp/order.jsp</result>
+        </action>
+        <action name="order_updateState" class="orderAction" method="updateOrderState">
+            <result type="redirectAction">cart_findByUid</result>
+        </action>
+        <action name="order_payOrder" class="payAction" method="payForOrder"/>
+        <action name="pay_callback" class="payAction" method="payCallBack">
+            <result>/WEB-INF/jsp/msg.jsp</result>
+        </action>
+    </package>
+
+    <package name="adminManager" extends="struts-default">
+        <interceptors>
+            <interceptor name="powerInterceptor" class="shop.admin.interceptor.PowerInteceptor"/>
+        </interceptors>
+        <global-results>
+            <result name="loginFailure">/admin/index.jsp</result>
+        </global-results>
+        <!--后台管理主页的 Action-->
+        <action name="admin">
+            <result>/admin/index.jsp</result>
+        </action>
+        <action name="adminUser_login" class="adminAction" method="adminLogin">
+            <result name="loginSuccess">/admin/home.jsp</result>
+            <result name="loginFailure">/admin/index.jsp</result>
+        </action>
+
+        <!--后台管理一级分类的 Action-->
+        <action name="adminCategory_findAll" class="adminCAction" method="findAll">
+            <result name="findAll">/admin/category/list.jsp</result>
+            <interceptor-ref name="powerInterceptor"/>
+            <interceptor-ref name="defaultStack"/>
+        </action>
+        <action name="adminCategory_*" class="adminCAction" method="{1}Category">
+            <result name="{1}Success" type="redirectAction">adminCategory_findAll.action</result>
+            <result name="{1}Failure">/admin/category/{1}.jsp</result>
+            <result name="editSuccess">/admin/category/edit.jsp</result>
+            <result name="deleteFailure">/admin/category/list.jsp</result>
+            <result name="editFailure">/admin/category/list.jsp</result>
+            <interceptor-ref name="powerInterceptor"/>
+            <interceptor-ref name="defaultStack"/>
+        </action>
+
+        <!--后台管理二级分类的 Action-->
+        <action name="adminCategorySecond_findAllByPage" class="adminCSAction" method="findAllByPage">
+            <result>/admin/categorySecond/list.jsp</result>
+            <interceptor-ref name="powerInterceptor"/>
+            <interceptor-ref name="defaultStack"/>
+        </action>
+        <action name="adminCategorySecond_*" class="adminCSAction" method="{1}CS">
+            <result name="{1}Page">/admin/categorySecond/{1}.jsp</result>
+            <result name="{1}Success" type="redirectAction">adminCategorySecond_findAllByPage.action?pageNums=1</result>
+            <result name="editSuccess">/admin/categorySecond/edit.jsp</result>
+            <interceptor-ref name="powerInterceptor"/>
+            <interceptor-ref name="defaultStack"/>
+        </action>
+
+        <!--后台管理商品的 Action-->
+        <action name="adminProduct_findAllByPage" class="adminProductAction" method="findAllByPage">
+            <result>/admin/product/list.jsp</result>
+            <interceptor-ref name="powerInterceptor"/>
+            <interceptor-ref name="defaultStack"/>
+        </action>
+        <action name="adminProduct_*" class="adminProductAction" method="{1}Product">
+            <result name="{1}Page">/admin/product/{1}.jsp</result>
+            <result name="{1}Success" type="redirectAction">adminProduct_findAllByPage.action?pageNums=1</result>
+            <result name="editSuccess">/admin/product/edit.jsp</result>
+            <interceptor-ref name="powerInterceptor"/>
+            <interceptor-ref name="defaultStack"/>
+        </action>
+
+        <!--后台管理订单的 Action-->
+        <action name="adminOrder_*" class="adminOrderAction" method="{1}">
+            <result name="findAllByPage">/admin/order/list.jsp</result>
+            <result name="findOrderItemsByOid">/admin/order/orderItem.jsp</result>
+            <result name="updateState" type="redirectAction">adminOrder_findAllByPage.action?pageNums=1</result>
+            <interceptor-ref name="powerInterceptor"/>
+            <interceptor-ref name="defaultStack"/>
+        </action>
+
+        <!--后台管理用户的 Action-->
+        <action name="adminUser_*" class="adminUserAction" method="{1}">
+            <result name="findAllByPage">/admin/user/list.jsp</result>
+            <result name="{1}Success" type="redirectAction">adminUser_findAllByPage.action?pageNums=1</result>
+            <result name="editUserSuccess">/admin/user/edit.jsp</result>
+            <interceptor-ref name="powerInterceptor"/>
+            <interceptor-ref name="defaultStack"/>
+        </action>
+    </package>
+
+</struts>
